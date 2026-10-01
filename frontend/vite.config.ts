@@ -6,6 +6,11 @@ import tsConfigPaths from "vite-tsconfig-paths";
 import { nitro } from "nitro/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Where the client build lands: Vercel's preset writes straight to its Build Output API dir
+// (.vercel/output/static), so the service worker must be generated there to be deployed.
+const isVercel = !!process.env.VERCEL || !!process.env.NITRO_PRESET?.startsWith("vercel");
+const clientDir = isVercel ? ".vercel/output/static" : "dist/client";
+
 export default defineConfig(({ command }) => ({
   server: { host: "::", port: 8080 },
   resolve: {
@@ -41,8 +46,8 @@ export default defineConfig(({ command }) => ({
       filename: "sw.js",
       devOptions: { enabled: false },
       workbox: {
-        globDirectory: "dist/client",
-        swDest: "dist/client/sw.js",
+        globDirectory: clientDir,
+        swDest: `${clientDir}/sw.js`,
         globPatterns: ["**/*.{js,css,jpg,png,svg,ico,woff2}"],
         navigateFallback: null,
         cleanupOutdatedCaches: true,
